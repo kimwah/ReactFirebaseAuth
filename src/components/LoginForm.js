@@ -1,35 +1,58 @@
 import React , { Component } from 'react';
 import { View, TextInput, Text } from 'react-native';
-import { Button, Card, CardSection, Input } from './common';
+import { Button, Card, CardSection, Input, Spinner } from './common';
 import  firebase  from 'firebase';
 
 class LoginForm extends Component {
   state = { email: '',
             password: '',
             error:'',
-            loginStatus: '' };
+            loginStatus: '',
+            loading: false };
 
   onButtonPress() {
     const { email, password } = this.state;
     this.setState({
       error: '',
-      loginStatus:''
-    })
+      loginStatus:'',
+      loading: true
+    });
     firebase.auth().signInWithEmailAndPassword(email, password)
     .then(()=>{
-      this.setState({loginStatus: "Login Successful."});
+      this.setState({
+                    loginStatus: "Login Successful.",
+                    loading:false
+                });
     })
     .catch(()=>{
       firebase.auth().createUserWithEmailAndPassword(email, password)
       .then(()=>{
-         this.setState({loginStatus: `New user ${email} created`});
+         this.setState({
+          loginStatus: `New user ${email} created`,
+          loading:false
+        });
       })
       .catch(()=>{
-        this.setState({ error: 'Authentication Failed.'});
+        this.setState({ 
+          error: 'Authentication Failed.',
+          loading:false });
       });
 
     });
-  }          
+  } 
+
+  renderButton(){
+    if (this.state.loading){
+      return (
+        <Spinner size="small" />
+      );
+    }
+    return (
+        <Button onPress={this.onButtonPress.bind(this)}>
+          Log In
+        </Button>   
+    )
+  }         
   render() {
     return (
     <Card>
@@ -61,9 +84,7 @@ class LoginForm extends Component {
         {this.state.loginStatus}
       </Text>
       <CardSection>
-        <Button onPress={this.onButtonPress.bind(this)}>
-          Log In
-        </Button>    
+        { this.renderButton() }
       </CardSection>                                
     </Card>
     );
